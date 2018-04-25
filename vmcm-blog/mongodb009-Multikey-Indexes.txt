@@ -1,0 +1,45 @@
+***********************
+***********************     Multikey-Indexes
+***********************
+
+Multikey Indexes
+---------------------
+
+Collection: Students
+
+
+{ _id : 0
+  name:'Martin'
+  teachers:[1,2,10,23]
+}
+
+Collection: Teachers
+
+{ _id:10
+  name:'Erik'
+}
+
+
+Questions:
+Who are the teachers of a particular student?
+	This is simple.
+Who are the students of a particular teacher?
+	This is not simple.
+	We need a multikey index
+
+db.students.find()
+{ "_id" : 0, "name" : "Martin Cardona", "teachers" : [0, 1] }
+db.teachers.find()
+{ "_id" : 0, "name" : "Erik" }
+db.students.ensureIndex( { 'teachers' : 1 } )
+#output:
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter"  : 2,
+	"ok" : 1
+
+--find all students with the teachers 0 AND 1:
+db.students.find( { 'teachers' : {$all : [0, 1] } } )
+
+--shows information  about the query
+db.students.find( { 'teachers' : {$all : [0, 1] } } ).explain()

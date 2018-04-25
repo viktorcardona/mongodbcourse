@@ -1,0 +1,81 @@
+************************
+************************    Compound Grouping
+************************
+
+
+SELECT manufacturer, category count(*)
+FROM products
+GROUP BY manufacturer, category
+
+
+{
+"_id": ObjectId("5h23402834jk2jlkjlj2399048"),
+"name": "Nexus",
+"category": "Tablets",
+"manufacturer": "Google",
+"price": 199
+},
+{
+"_id": ObjectId("5h23402831212gggj12399048"),
+"name": "Kindle Paper White",
+"category": "Tablets",
+"manufacturer": "Amazon",
+"price": 129
+}
+
+
+db.products.aggregate(
+    [{
+        $group:{
+            _id: {
+                "maker":"$manufacturer"
+                "category":"$category"
+                },
+            num_products: {$sum:1}
+        }
+    }]
+)
+
+
+The above aggregation creates a collection results:
+{ "_id" : { "maker":"Amazon", "category":"Tablets"}, "num_products" : 2 }
+{ "_id" : { "maker":"Samsung", "category":"Tablets"}, "num_products" : 3 }
+{ "_id" : { "maker":"Samsung", "category":"Cell Phones"}, "num_products" : 2 }
+
+
+
+
+Quiz: Compound Grouping
+
+Given the following collection:
+> db.stuff.find()
+{ "_id" : ObjectId("50b26f9d80a78af03b5163c8"), "a" : 1, "b" : 1, "c" : 1 }
+{ "_id" : ObjectId("50b26fb480a78af03b5163c9"), "a" : 2, "b" : 2, "c" : 1 }
+{ "_id" : ObjectId("50b26fbf80a78af03b5163ca"), "a" : 3, "b" : 3, "c" : 1 }
+{ "_id" : ObjectId("50b26fcd80a78af03b5163cb"), "a" : 3, "b" : 3, "c" : 2 }
+{ "_id" : ObjectId("50b26fd380a78af03b5163cc"), "a" : 3, "b" : 5, "c" : 3 }
+{ "_id" : ObjectId("50b27f7080a78af03b5163cd"), "a" : 3, "b" : 3, "c" : 2 }
+And the following aggregation query:
+db.stuff.aggregate([{$group:
+		     {_id:
+		      {'moe':'$a',
+		       'larry':'$b',
+		       'curly':'$c'
+		      }
+		     }
+		    }])
+How many documents will be in the result set?
+
+2
+3
+4
+5
+6
+
+Answer: 5
+In this case you aggregate 2 of the 6 docs:
+
+{ "_id" : ObjectId("50b26fcd80a78af03b5163cb"), "a" : 3, "b" : 3, "c" : 2 }
+{ "_id" : ObjectId("50b27f7080a78af03b5163cd"), "a" : 3, "b" : 3, "c" : 2 }
+
+Remember you are looking unique values!

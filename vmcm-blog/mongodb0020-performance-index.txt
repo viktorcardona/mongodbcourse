@@ -1,0 +1,65 @@
+Quiz: When is an Index Used?
+
+Given collection foo with the following index:
+
+db.foo.createIndex( { a : 1, b : 1, c : 1 } )
+Which of the following queries will use the index?
+
+
+a. db.foo.find( { c : 1 } ).sort( { a : 1, b : 1 } )
+b. db.foo.find( { a : 3 } )
+c. db.foo.find( { b : 3, c : 4 } )
+d. db.foo.find({c:1}).sort({a:-1, b:1})
+
+Answer: a and b
+
+To verify the answer key, and see how each index is used, you can check explain("executionStats").
+The overriding principle, though, is that you must use a left-subset (or "prefix") of the index. For sorting, it must either match the index orientation, or match its reverse orientation, which you can get when the btree is walked backwards.
+
+******************************************************************************************
+
+**********************
+**********************  Index Size
+**********************
+
+Lecture Notes
+
+This lecture was originally recorded for an earlier version of the database, which used the classic storage engine (now known as MMAPv1).
+
+In fact, the index size can be considerably smaller (at the cost of some CPU space) in WiredTiger with --wiredTigerIndexPrefixCompression enabled.
+Also, the db.collection.stats() is more verbose for WiredTiger, but will still give you all of this information.
+
+
+
+Check the attribute:
+"totalIndexSize"
+for the next results based on grades collection:
+And the individual sizes of each index, look at the attribute:
+"indexSizes"
+
+> db.grades.stats();
+{
+	"ns" : "students.grades",
+	"count" : 600,
+	"size" : 67200,
+	"avgObjSize" : 112,
+	"numExtents" : 3,
+	"storageSize" : 172032,
+	"lastExtentSize" : 131072,
+	"paddingFactor" : 1,
+	"paddingFactorNote" : "paddingFactor is unused and unmaintained in 3.0. It remains hard coded to 1.0 for compatibility only.",
+	"userFlags" : 1,
+	"capped" : false,
+	"nindexes" : 1,
+	"totalIndexSize" : 32704,
+	"indexSizes" : {
+		"_id_" : 32704
+	},
+	"ok" : 1
+}
+
+
+> db.grades.totalIndexSize();
+32704
+
+Your index size should be fit into memory.

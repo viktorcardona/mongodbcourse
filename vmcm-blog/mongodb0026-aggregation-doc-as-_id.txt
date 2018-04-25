@@ -1,0 +1,10 @@
+************************
+************************    Document for _id
+************************
+
+db.foo.insert({ _id: {name:"andrew", class:"m101"}, hometown:"NY" });
+
+The requierement is that _id must be unique
+
+It is a feature of mongo db itself.
+

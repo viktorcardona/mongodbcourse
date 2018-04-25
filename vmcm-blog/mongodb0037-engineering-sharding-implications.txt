@@ -1,0 +1,27 @@
+*************************
+*************************   Sharding Implications
+*************************
+
+
+    -   Every doc must include the shard key
+    -   Shard key is immutable, you can not change the shard key value
+    -   You need an index that starts with the shard key
+    -   In update you need to specified the shard key
+    -   When you send a query without the shard key it will be sent to all the nodes
+    -   Think about the field that is going to be used more in your app in order to be the shard key
+    -   You can not a unique key, unless is part of the shard key
+
+
+
+
+Quiz: Implications of Sharding
+
+Suppose you wanted to shard the zip code collection after importing it. You want to shard on zip code. What index would be required to allow MongoDB to shard on zip code?
+
+1. An index on zip or a non-multi-key index that starts with zip.
+2. No index is required to use zip as the shard key.
+3. A unique index on the zip code.
+4. Any index that that includes the zip code.
+
+
+Answer: 1

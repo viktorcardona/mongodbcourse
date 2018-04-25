@@ -1,0 +1,80 @@
+************************
+************************    Aggregation Framework
+************************
+
+table:
+Products
+
+name    |   category    |   manufacturer    |   price
+-------------------------------------------------------
+ipad    |   tablet      |   Apple           |   499
+nexus   |   cellphone   |   Samsung         |   350
+
+SELECT manufacturer, count(*)
+FROM products
+GROUP BY manufacturer
+
+Results:
+
+manufacturer    count(*)
+------------------------
+Apple           2
+Samsung         3
+
+
+Mongo:
+-----
+
+{
+"_id": ObjectId("5h23402834jk2jlkjlj2399048"),
+"name": "Nexus",
+"category": "Tablets",
+"manufacturer": "Google",
+"price": 199
+},
+{
+"_id": ObjectId("5h23402831212gggj12399048"),
+"name": "Kindle Paper White",
+"category": "Tablets",
+"manufacturer": "Amazon",
+"price": 129
+}
+
+
+db.products.aggregate(
+    [{
+        $group:{
+            _id: "$manufacturer"
+            num_products: {$sum:1}
+        }
+    }]
+)
+
+result:
+{ "_id" : "Amazon", "num_products" : 2 }
+{ "_id" : "Sony", "num_products" : 1 }
+{ "_id" : "Samsung", "num_products" : 4 }
+{ "_id" : "Google", "num_products" : 0 }
+{ "_id" : "Apple", "num_products" : 7 }
+
+
+Quiz: Simple Aggregation Example
+
+Write the aggregation query that will find the number of products by category of a collection that has the form:
+{
+	"_id" : ObjectId("50b1aa983b3d0043b51b2c52"),
+	"name" : "Nexus 7",
+	"category" : "Tablets",
+	"manufacturer" : "Google",
+	"price" : 199
+}
+
+Have the resulting key be called "num_products," as in the video lesson. Hint, you just need to change which key you are aggregating on relative to the examples shown in the lesson.
+Please double quote all keys to make it easier to check your result.
+
+Answer:
+
+db.products.aggregate([{$group:{
+               _id: "$category",
+               num_products: {$sum:1}
+            }}])

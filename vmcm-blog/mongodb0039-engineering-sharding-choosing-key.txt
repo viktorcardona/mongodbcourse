@@ -1,0 +1,23 @@
+*************************
+*************************   Choosing a Shard Key
+*************************
+
+    - Sufficient Cardinality
+    - Avoid Hot Spotting in writes (monotonically increasing)
+    - Shard key can not have multi-key index, so it is illegal an array as a shard key
+
+Quiz: Choosing a Shard Key
+
+You are building a facebook competitor called footbook that will be a mobile social network of feet. You have decided that your primary data structure for posts to the wall will look like this:
+{'username':'toeguy',
+     'posttime':ISODate("2012-12-02T23:12:23Z"),
+     "randomthought": "I am looking at my feet right now",
+     'visible_to':['friends','family', 'walkers']}
+Thinking about the tradeoffs of shard key selection, select the true statements below.
+
+1. Choosing posttime as the shard key will cause hotspotting as time progresses.
+2. Choosing username as the shard key will distribute posts to the wall well across the shards.
+3. Choosing visible_to as a shard key is illegal.
+4. Choosing posttime as the shard key suffers from low cardinality.
+
+Answer: 1, 2 and 3

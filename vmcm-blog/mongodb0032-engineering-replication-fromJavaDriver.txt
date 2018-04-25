@@ -1,0 +1,68 @@
+package com.vmcm.mongodb.test.replicaset;
+
+import static java.util.Arrays.asList;
+
+import org.bson.Document;
+
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+
+/**
+ * Created by viccardo on 20/04/16.
+ */
+public class ReplicaSetTest {
+
+    public static void main(String[] args) throws InterruptedException {
+
+        //
+        //27018 the primary, then: from the primary:
+        //mongo --port 27018
+        //rs.stepDown();
+        //rs.status();
+        //the last show that 27018 is not more the primary, now the primary is 27017
+        //MongoClient client = new MongoClient(new ServerAddress("localhost", 27018));
+
+        //new version to take advantage of the replicaset
+        //this detects wich is the primary, even if it is not 27018, this is because 27018 is part of the replicaset
+        //the problem is that if 27018 is down, then the connection can not be established
+        //MongoClient client = new MongoClient(asList(new ServerAddress("localhost", 27018)));
+
+        //new version to take advantage of the replicaset
+        MongoClient client = new MongoClient(asList(new ServerAddress("localhost", 27017),
+                new ServerAddress("localhost", 27018),
+                new ServerAddress("localhost", 27019)),
+                MongoClientOptions.builder()
+                        .requiredReplicaSetName("m101")//name of the replica set
+                        .build());
+
+        MongoCollection<Document> collection = client.getDatabase("course").getCollection("replication");
+        collection.drop();
+
+        for(int i=0; i < Integer.MAX_VALUE; i++){
+            collection.insertOne(new Document("_id", i));
+            System.out.println("Inserted document: "+i);
+            Thread.sleep(500);
+        }
+
+    }
+
+}
+
+
+
+
+Quiz: Connecting to a Replica Set from the Java Driver
+
+If you leave a replica set node out of the seedlist within the driver, what will happen?
+
+1. The missing node will be used for writes, but not for reads.
+2. This missing node will be used for reads, but not for writes.
+3. The missing node will not be used by the application.
+4. The missing node will be discovered as long as you list at least one valid node.
+
+Answer: 4
+
+ 

@@ -1,0 +1,24 @@
+*************************
+*************************   Limitations in Aggregation Framework
+*************************
+
+
+*   100 MB limit for pipeline stages
+    they come back if the query is large
+
+    allow DiskUse parameter for not limited
+
+*   16 MB limit by default
+
+    set cursor in this case
+
+*   sharder system  ->  group by or sort then result is sent to primary shard
+    so it does not have the same level of scalability in aggregation that you can find in hadoop
+    is not quit good performance
+
+    s0  s1  s2  s3  s4
+
+    Alternative:
+        Hadoop - map/reduce (hadoop connector)
+        but map/reduce is not recommended in mongoDB, aggregation is better choice
+

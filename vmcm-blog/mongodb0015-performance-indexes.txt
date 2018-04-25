@@ -1,0 +1,809 @@
+Lectures Notes:
+***************
+
+In this video, Andrew mentions that while reads are much faster with indexes, writes to a document will happen slower. This is true, but it's worth noting a caveat here: combination operations, such as update and deletion operations, where you find the document you want and then perform a write, will benefit from the index when you're performing the query stage, and then may be slowed by the index when you perform the write. Usually you're still better off having an index, but there are some special cases where this may not be true.
+He mentions that indexes in mongodb are in btrees. This is true for MMAP (and therefore for MongoDB prior to 3.0), but it does depend on your storage engine. For example, when you are using WiredTiger, as of MongoDB 3.0, indexes are implemented in b+trees. Again, you can find details in Wikipedia (links provided here for your convenience).
+
+Basically the docs are stored maybe in random way like:
+| doc-x | doc-r | doc-y | doc-a | doc-q |...doc-z |
+Then, with a index, you have a array with the documents ordered, but the content is a pointer to the actual data on disk, like:
+| point-doc-a | point-doc-b | point-doc-c | point-doc-d | point-doc-e |...point-doc-z |
+Then, when you run a query, the algorithm that is used is a search on a B-TREE (binary search), so that is fast.
+So that:
+Indexes slow your writes, because you have to write on disk but also to maintain your indexes, and, the reads is going to be faster.
+
+#Quiz: Indexes
+#Which optimization will typically have the greatest impact on the performance of a database.
+a. Adding more memory so that the working set fits in memory.
+b. Adding a faster drive so that operations that hit disk will happen more quickly.
+c. Replacing your CPU with a faster one (say one 2x as fast)
+d. Adding appropriate indexes on large collections so that only a small percentage of queries need to scan the collection.
+Answer: d
+
+*****************
+*****************   Creating Indexes:
+*****************
+
+tuype the command after init mongodb:
+mongo
+> show databases
+admin               0.078GB
+blog                0.078GB
+course              0.078GB
+helios              0.078GB
+heliosdictionaries  0.078GB
+local               0.078GB
+m101                0.078GB
+school              0.078GB
+students            0.078GB
+test                0.078GB
+test_flow_books     0.078GB
+> use school
+> db.students.findOne();
+{
+	"_id" : 0,
+	"name" : "aimee Zank",
+	"scores" : [
+		{
+			"type" : "exam",
+			"score" : 1.463179736705023
+		},
+		{
+			"type" : "quiz",
+			"score" : 11.78273309957772
+		},
+		{
+			"type" : "homework",
+			"score" : 35.8740349954354
+		}
+	]
+}
+> db.students.find({_id:5});
+{ "_id" : 5, "name" : "Wilburn Spiess", "scores" : [ { "type" : "exam", "score" : 44.87186330181261 }, { "type" : "quiz", "score" : 25.72395114668016 }, { "type" : "homework", "score" : 63.42288310628662 } ] }
+> db.students.explain().find({_id:5});
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "school.students",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"_id" : {
+				"$eq" : 5
+			}
+		},
+		"winningPlan" : {
+			"stage" : "IDHACK"
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "cobogpgp1278.global.publicisgroupe.net",
+		"port" : 27017,
+		"version" : "3.0.7",
+		"gitVersion" : "6ce7cbe8c6b899552dadd907604559806aa2e9bd"
+	},
+	"ok" : 1
+}
+
+#The interesting part of the explain() is the key "winningPlan"
+
+Create an index, 1 means ascending:
+-----------------------------------
+> db.students.createIndex({_id:1});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 1,
+	"note" : "all indexes already exist",
+	"ok" : 1
+}
+well the last index creation said that already exist, but, if not exist:
+run again:
+> db.students.explain().find({_id:5});
+so that you can see the information of "winningPlan" key, where you should see the indexName key.
+and, if you run:
+> db.students.explain(true).find({_id:5});
+this should tell you "docsExamined", just a littel bit number "waooo!!", instead of all docs stored on the collection.
+
+Create a Compound Index:
+------------------------
+-1 means descending.
+> db.students.createIndex({_id:1, class_id:-1});
+
+#Quiz: Creating Indexes
+#Please provide the mongo shell command to add an index to a collection named students, having the index key be class, student_name.
+#Neither will go in the "-1" direction..
+Answer:
+db.students.createIndex( { "class" : 1, "student_name" : 1 } )
+
+
+*****************
+*****************   Discovering and Deleting Indexes:
+*****************
+
+
+Create Index on Students.name
+------------------------------
+
+> db.students.createIndex({name:1});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+
+
+Query the Indexes
+---------------------------------
+> db.students.getIndexes();
+[
+	{
+		"v" : 1,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "school.students"
+	},
+	{
+		"v" : 1,
+		"key" : {
+			"name" : 1
+		},
+		"name" : "name_1",
+		"ns" : "school.students"
+	}
+]
+
+Drop the Indexes
+---------------------------------
+
+> db.students.dropIndex({name:1});
+{ "nIndexesWas" : 2, "ok" : 1 }
+
+> db.students.getIndexes();
+[
+	{
+		"v" : 1,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "school.students"
+	}
+]
+
+
+#Quiz: Discovering (and Deleting) Indexes
+#Which of the following is a valid way to discover indexes for a collection in mongoDB?
+a. show indexes
+b. db.collection.getIndexes()
+c. db.getIndexes()
+d. db.collection.findIndexes()
+e. db.collection.find("indexes")
+Answer: b
+
+
+
+*****************
+*****************   Multikey Indexes:
+*****************
+
+Indexes in an array.
+
+Collection:
+
+{
+name: "Andrew",
+tags:['photography','hiking','golf'],
+color : 'red',
+location : ['NY', 'CA']
+}
+
+You can create indexes like:
+(tags)
+(tags,color)
+But you can not create the following compound index because both fields are arrays:
+(tags, location)
+###
+### Create the collection foo
+###
+> db.foo.insert({a:1, b:2});
+WriteResult({ "nInserted" : 1 })
+> db.foo.find();
+{ "_id" : ObjectId("5705900995109d1af5ba9168"), "a" : 1, "b" : 2 }
+> db.foo.createIndex({a:1, b:1});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+> db.foo.explain().find({a:1, b:1});
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "school.foo",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"$and" : [
+				{
+					"a" : {
+						"$eq" : 1
+					}
+				},
+				{
+					"b" : {
+						"$eq" : 1
+					}
+				}
+			]
+		},
+		"winningPlan" : {
+			"stage" : "FETCH",
+			"inputStage" : {
+				"stage" : "IXSCAN",
+				"keyPattern" : {
+					"a" : 1,
+					"b" : 1
+				},
+				"indexName" : "a_1_b_1",
+				"isMultiKey" : false,
+				"direction" : "forward",
+				"indexBounds" : {
+					"a" : [
+						"[1.0, 1.0]"
+					],
+					"b" : [
+						"[1.0, 1.0]"
+					]
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "cobogpgp1278.global.publicisgroupe.net",
+		"port" : 27017,
+		"version" : "3.0.7",
+		"gitVersion" : "6ce7cbe8c6b899552dadd907604559806aa2e9bd"
+	},
+	"ok" : 1
+}
+In the above result check:
+"winningPlan"."inputStage":
+    "stage" : "IXSCAN"
+    "indexName" : "a_1_b_1",
+    "isMultiKey" : false,
+
+
+-------Let's insert a doc where b is now an array:
+> db.foo.find();
+{ "_id" : ObjectId("5705900995109d1af5ba9168"), "a" : 1, "b" : 2 }
+> db.foo.insert({a:3, b:[3,5,7]});
+WriteResult({ "nInserted" : 1 })
+> db.foo.explain().find({a:1, b:1});
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "school.foo",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"$and" : [
+				{
+					"a" : {
+						"$eq" : 1
+					}
+				},
+				{
+					"b" : {
+						"$eq" : 1
+					}
+				}
+			]
+		},
+		"winningPlan" : {
+			"stage" : "FETCH",
+			"inputStage" : {
+				"stage" : "IXSCAN",
+				"keyPattern" : {
+					"a" : 1,
+					"b" : 1
+				},
+				"indexName" : "a_1_b_1",
+				"isMultiKey" : true,
+				"direction" : "forward",
+				"indexBounds" : {
+					"a" : [
+						"[1.0, 1.0]"
+					],
+					"b" : [
+						"[1.0, 1.0]"
+					]
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "cobogpgp1278.global.publicisgroupe.net",
+		"port" : 27017,
+		"version" : "3.0.7",
+		"gitVersion" : "6ce7cbe8c6b899552dadd907604559806aa2e9bd"
+	},
+	"ok" : 1
+}
+As you can see, now:
+    "isMultiKey" : true,
+
+-------Let's insert a doc where a and b are arrays:
+> db.foo.insert({a:[3,4,6], b:[7,8,9]});
+WriteResult({
+	"nInserted" : 0,
+	"writeError" : {
+		"code" : 10088,
+		"errmsg" : "cannot index parallel arrays [b] [a]"
+	}
+})
+
+----------But you can insert a doc where a now is an array without problems:
+> db.foo.insert({a:[3,4,6], b:8});
+WriteResult({ "nInserted" : 1 })
+
+
+#Quiz: Multikey Indexes
+#Suppose we have a collection foo that has an index created as follows:
+#db.foo.createIndex( { a:1, b:1 } )
+#Which of the following inserts are valid to this collection?
+a. db.foo.insert( { a : "grapes", b : [ 8, 9, 10 ] } )
+b. db.foo.insert( { a : ["apples", "oranges" ], b : "grapes" } )
+c. db.foo.insert( { a : [ 1, 2, 3 ], b : [ 5, 6, 7 ] } )
+d. db.foo.insert( { a : "grapes", b : "oranges" } )
+Answer: a, b, d
+
+
+
+
+
+
+*****************
+*****************   Dot Notation and Multikey
+*****************
+
+
+> db.students.findOne();
+{
+	"_id" : 0,
+	"name" : "aimee Zank",
+	"scores" : [
+		{
+			"type" : "exam",
+			"score" : 1.463179736705023
+		},
+		{
+			"type" : "quiz",
+			"score" : 11.78273309957772
+		},
+		{
+			"type" : "homework",
+			"score" : 35.8740349954354
+		}
+	]
+}
+
+> db.students.createIndex({'scores.score':1});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+
+> db.students.getIndexes();
+[
+	{
+		"v" : 1,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "school.students"
+	},
+	{
+		"v" : 1,
+		"key" : {
+			"scores.score" : 1
+		},
+		"name" : "scores.score_1",
+		"ns" : "school.students"
+	}
+]
+
+------Let's run a query:
+> db.students.explain().find({'scores.score':{'$gt':99}});
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "school.students",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"scores.score" : {
+				"$gt" : 99
+			}
+		},
+		"winningPlan" : {
+			"stage" : "FETCH",
+			"inputStage" : {
+				"stage" : "IXSCAN",
+				"keyPattern" : {
+					"scores.score" : 1
+				},
+				"indexName" : "scores.score_1",
+				"isMultiKey" : true,
+				"direction" : "forward",
+				"indexBounds" : {
+					"scores.score" : [
+						"(99.0, inf.0]"
+					]
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "cobogpgp1278.global.publicisgroupe.net",
+		"port" : 27017,
+		"version" : "3.0.7",
+		"gitVersion" : "6ce7cbe8c6b899552dadd907604559806aa2e9bd"
+	},
+	"ok" : 1
+}
+In the above info check:
+"indexName" : "scores.score_1",
+				"isMultiKey" : true,
+				"indexBounds" : {
+					"scores.score" : [
+						"(99.0, inf.0]"
+					]
+				}
+------Ok, run the query:
+> db.students.find({'scores.score':{'$gt':99}});
+{ "_id" : 172, "name" : "Joaquina Arbuckle", "scores" : [ { "type" : "exam", "score" : 35.43562368815135 }, { "type" : "quiz", "score" : 89.74640983145014 }, { "type" : "homework", "score" : 99.13868686848834 } ] }
+{ "_id" : 136, "name" : "Margart Vitello", "scores" : [ { "type" : "exam", "score" : 99.33685767140612 }, { "type" : "quiz", "score" : 1.25322762871457 }, { "type" : "homework", "score" : 66.22827571617455 } ] }
+{ "_id" : 32, "name" : "Gwen Honig", "scores" : [ { "type" : "exam", "score" : 87.14345376886205 }, { "type" : "quiz", "score" : 99.45824441135635 }, { "type" : "homework", "score" : 76.66460454219344 } ] }
+{ "_id" : 178, "name" : "Whitley Fears", "scores" : [ { "type" : "exam", "score" : 20.84454374176408 }, { "type" : "quiz", "score" : 57.14851257871499 }, { "type" : "homework", "score" : 99.77237745070993 } ] }
+{ "_id" : 69, "name" : "Cody Strouth", "scores" : [ { "type" : "exam", "score" : 4.784730508547719 }, { "type" : "quiz", "score" : 99.80348240553108 }, { "type" : "homework", "score" : 97.89665889862901 } ] }
+
+
+************************************
+************************************    $elemMatch
+************************************
+
+> db.students.find({'scores':{$elemMatch: {type:'exam', score:{'$gt':99.2}}}}).pretty();
+{
+	"_id" : 136,
+	"name" : "Margart Vitello",
+	"scores" : [
+		{
+			"type" : "exam",
+			"score" : 99.33685767140612
+		},
+		{
+			"type" : "quiz",
+			"score" : 1.25322762871457
+		},
+		{
+			"type" : "homework",
+			"score" : 66.22827571617455
+		}
+	]
+}
+> db.students.find({'scores':{$elemMatch: {type:'exam', score:{'$gt':99.2}}}}).count();
+1
+
+-----Let's run the same query with explain:
+
+> db.students.explain().find({'scores':{$elemMatch: {type:'exam', score:{'$gt':99.2}}}});
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "school.students",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"scores" : {
+				"$elemMatch" : {
+					"$and" : [
+						{
+							"type" : {
+								"$eq" : "exam"
+							}
+						},
+						{
+							"score" : {
+								"$gt" : 99.2
+							}
+						}
+					]
+				}
+			}
+		},
+		"winningPlan" : {
+			"stage" : "KEEP_MUTATIONS",
+			"inputStage" : {
+				"stage" : "FETCH",
+				"filter" : {
+					"scores" : {
+						"$elemMatch" : {
+							"$and" : [
+								{
+									"score" : {
+										"$gt" : 99.2
+									}
+								},
+								{
+									"type" : {
+										"$eq" : "exam"
+									}
+								}
+							]
+						}
+					}
+				},
+				"inputStage" : {
+					"stage" : "IXSCAN",
+					"keyPattern" : {
+						"scores.score" : 1
+					},
+					"indexName" : "scores.score_1",
+					"isMultiKey" : true,
+					"direction" : "forward",
+					"indexBounds" : {
+						"scores.score" : [
+							"(99.2, inf.0]"
+						]
+					}
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "cobogpgp1278.global.publicisgroupe.net",
+		"port" : 27017,
+		"version" : "3.0.7",
+		"gitVersion" : "6ce7cbe8c6b899552dadd907604559806aa2e9bd"
+	},
+	"ok" : 1
+}
+
+--Just check this info from above:
+"inputStage"
+"indexBounds" : {
+                "scores.score" : [
+                    "(99.2, inf.0]"
+                ]
+}
+
+--and:
+"filter" : {
+					"scores" : {
+						"$elemMatch" : {
+							"$and" : [
+								{
+									"score" : {
+										"$gt" : 99.2
+									}
+								},
+								{
+									"type" : {
+										"$eq" : "exam"
+									}
+								}
+							]
+						}
+					}
+				}
+
+----Lets run the explain with true to know how many docs are examined among all the docs on the collection:
+
+> db.students.explain(true).find({'scores':{$elemMatch: {type:'exam', score:{'$gt':99.2}}}});
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "school.students",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"scores" : {
+				"$elemMatch" : {
+					"$and" : [
+						{
+							"type" : {
+								"$eq" : "exam"
+							}
+						},
+						{
+							"score" : {
+								"$gt" : 99.2
+							}
+						}
+					]
+				}
+			}
+		},
+		"winningPlan" : {
+			"stage" : "KEEP_MUTATIONS",
+			"inputStage" : {
+				"stage" : "FETCH",
+				"filter" : {
+					"scores" : {
+						"$elemMatch" : {
+							"$and" : [
+								{
+									"score" : {
+										"$gt" : 99.2
+									}
+								},
+								{
+									"type" : {
+										"$eq" : "exam"
+									}
+								}
+							]
+						}
+					}
+				},
+				"inputStage" : {
+					"stage" : "IXSCAN",
+					"keyPattern" : {
+						"scores.score" : 1
+					},
+					"indexName" : "scores.score_1",
+					"isMultiKey" : true,
+					"direction" : "forward",
+					"indexBounds" : {
+						"scores.score" : [
+							"(99.2, inf.0]"
+						]
+					}
+				}
+			}
+		},
+		"rejectedPlans" : [ ]
+	},
+	"executionStats" : {
+		"executionSuccess" : true,
+		"nReturned" : 1,
+		"executionTimeMillis" : 0,
+		"totalKeysExamined" : 4,
+		"totalDocsExamined" : 4,
+		"executionStages" : {
+			"stage" : "KEEP_MUTATIONS",
+			"nReturned" : 1,
+			"executionTimeMillisEstimate" : 0,
+			"works" : 5,
+			"advanced" : 1,
+			"needTime" : 3,
+			"needFetch" : 0,
+			"saveState" : 0,
+			"restoreState" : 0,
+			"isEOF" : 1,
+			"invalidates" : 0,
+			"inputStage" : {
+				"stage" : "FETCH",
+				"filter" : {
+					"scores" : {
+						"$elemMatch" : {
+							"$and" : [
+								{
+									"score" : {
+										"$gt" : 99.2
+									}
+								},
+								{
+									"type" : {
+										"$eq" : "exam"
+									}
+								}
+							]
+						}
+					}
+				},
+				"nReturned" : 1,
+				"executionTimeMillisEstimate" : 0,
+				"works" : 5,
+				"advanced" : 1,
+				"needTime" : 3,
+				"needFetch" : 0,
+				"saveState" : 0,
+				"restoreState" : 0,
+				"isEOF" : 1,
+				"invalidates" : 0,
+				"docsExamined" : 4,
+				"alreadyHasObj" : 0,
+				"inputStage" : {
+					"stage" : "IXSCAN",
+					"nReturned" : 4,
+					"executionTimeMillisEstimate" : 0,
+					"works" : 4,
+					"advanced" : 4,
+					"needTime" : 0,
+					"needFetch" : 0,
+					"saveState" : 0,
+					"restoreState" : 0,
+					"isEOF" : 1,
+					"invalidates" : 0,
+					"keyPattern" : {
+						"scores.score" : 1
+					},
+					"indexName" : "scores.score_1",
+					"isMultiKey" : true,
+					"direction" : "forward",
+					"indexBounds" : {
+						"scores.score" : [
+							"(99.2, inf.0]"
+						]
+					},
+					"keysExamined" : 4,
+					"dupsTested" : 4,
+					"dupsDropped" : 0,
+					"seenInvalidated" : 0,
+					"matchTested" : 0
+				}
+			}
+		},
+		"allPlansExecution" : [ ]
+	},
+	"serverInfo" : {
+		"host" : "cobogpgp1278.global.publicisgroupe.net",
+		"port" : 27017,
+		"version" : "3.0.7",
+		"gitVersion" : "6ce7cbe8c6b899552dadd907604559806aa2e9bd"
+	},
+	"ok" : 1
+}
+
+--Well the info from above to check are:
+"executionStats"."docsExamined" : 4,
+--so the query do not examined all the docs on the collection with that index, you can confirm that number wit a count:
+db.students.find({'scores':{$elemMatch: {type:'exam', score:{'$gt':99.2}}}}).count();
+1
+
+
+#   Use the query like this:
+db.students.find({'scores':{$elemMatch: {type:'exam', score:{'$gt':99.2}}}});
+#   Do not use a query like this:
+db.students.find({'$and':[{'scores.type':'exam'},{'scores.score':{'$gt':99.2}}]}).pretty();
+#   Because the last one just look for any score with type=exam, and other score gt 99.2
+
+
+
+#Quiz: Dot Notation and Multikey
+#Suppose you have a collection called people in the database earth with documents of the following form:
+{
+	"_id" : ObjectId("551458821b87e1799edbebc4"),
+	"name" : "Eliot Horowitz",
+	"work_history" : [
+		{
+			"company" : "DoubleClick",
+			"position" : "Software Engineer"
+		},
+		{
+			"company" : "ShopWiki",
+			"position" : "Founder & CTO"
+		},
+		{
+			"company" : "MongoDB",
+			"position" : "Founder & CTO"
+		}
+	]
+}
+#Type the command that you would issue in the Mongo shell to create an index on company, descending.
+Answer:
+db.people.createIndex({'work_history.company':-1});
+
+
+
+
+
+

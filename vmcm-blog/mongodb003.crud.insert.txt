@@ -1,0 +1,207 @@
+> doc = { "name" : "Smith", "age" : 30, "profession" : "hacker" }
+{ "name" : "Smith", "age" : 30, "profession" : "hacker" }
+> db
+test
+> show collections
+system.indexes
+> db.people.insert( doc )
+WriteResult({ "nInserted" : 1 })
+> db.people.find()
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Smith", "age" : 30, "profession" : "hacker" }
+> show collections
+people
+system.indexes
+> db.people.findOne()
+{
+	"_id" : ObjectId("56f204770317ac53eccabb44"),
+	"name" : "Smith",
+	"age" : 30,
+	"profession" : "hacker"
+}
+> db.people.findOne({ "name" : "Smith"})
+{
+	"_id" : ObjectId("56f204770317ac53eccabb44"),
+	"name" : "Smith",
+	"age" : 30,
+	"profession" : "hacker"
+}
+#the 2cond argument are the fields you want to see:
+> db.people.findOne({ "name" : "Smith"} , { "name":true})
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Smith" }
+> db.people.findOne({ "name" : "Smith"} , { "name":true, "_id":false})
+{ "name" : "Smith" }
+
+#insert a lot documents:::::
+> for(i=0;i<1000;i++){names=["exam","essay","quiz"]; for(j=0;j<3;j++){ db.scores.insert({"student":i, "type":names[j], score : Math.round(Math.random()*100)});}}
+WriteResult({ "nInserted" : 1 })
+> db.scores.find()
+{ "_id" : ObjectId("56f209290317ac53eccabb45"), "student" : 0, "type" : "exam", "score" : 10 }
+{ "_id" : ObjectId("56f209290317ac53eccabb46"), "student" : 0, "type" : "essay", "score" : 66 }
+{ "_id" : ObjectId("56f209290317ac53eccabb47"), "student" : 0, "type" : "quiz", "score" : 63 }
+{ "_id" : ObjectId("56f209290317ac53eccabb48"), "student" : 1, "type" : "exam", "score" : 18 }
+{ "_id" : ObjectId("56f209290317ac53eccabb49"), "student" : 1, "type" : "essay", "score" : 49 }
+{ "_id" : ObjectId("56f209290317ac53eccabb4a"), "student" : 1, "type" : "quiz", "score" : 12 }
+{ "_id" : ObjectId("56f209290317ac53eccabb4b"), "student" : 2, "type" : "exam", "score" : 63 }
+{ "_id" : ObjectId("56f209290317ac53eccabb4c"), "student" : 2, "type" : "essay", "score" : 73 }
+> db.scores.find().pretty()
+{
+	"_id" : ObjectId("56f209290317ac53eccabb45"),
+	"student" : 0,
+	"type" : "exam",
+	"score" : 10
+}
+{
+	"_id" : ObjectId("56f209290317ac53eccabb46"),
+	"student" : 0,
+	"type" : "essay",
+	"score" : 66
+}
+> db.scores.find({ type:"essay"});
+> db.scores.find({ student:19});
+> db.scores.find({ student : 19, type : "essay" });
+#second argument tell which columns to show
+> db.scores.find({ student : 19, type : "essay" }, { score:true });
+> db.scores.find({ student : 19, type : "essay" }, { score:true, "_id":false });
+
+#Supposing a scores collection similar to the one presented, how would you find all documents with type: essay and score: 50 and only retrieve the student field?
+db.scores.find({type:"essay", score:50}, {"_id":false, student:true});
+
+#scores greater than 95:
+db.scores.find({ score : { $gt : 95 }  })
+#and type equal to essay:
+db.scores.find({ score : { $gt : 95 }, type : "essay"  })
+#score greater than 95 and less than or equal to 98:
+db.scores.find({ score : { $gt : 95, $lte : 98 }, type : "essay"  })
+#or:
+db.scores.find({ score : { $gte : 95, $lt : 98 }, type : "essay"  })
+
+
+> db.people.find()
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Smith", "age" : 30, "profession" : "hacker" }
+> db.people.insert( { name: "Alice" } )
+WriteResult({ "nInserted" : 1 })
+> db.people.insert( { name: "Bob" } )
+WriteResult({ "nInserted" : 1 })
+> db.people.insert( { name: "Charlie" } )
+WriteResult({ "nInserted" : 1 })
+> db.people.insert( { name: "Dave" } )
+WriteResult({ "nInserted" : 1 })
+> db.people.insert( { name: "Edgar" } )
+WriteResult({ "nInserted" : 1 })
+> db.people.insert( { name: "Fred" } )
+WriteResult({ "nInserted" : 1 })
+> db.people.find()
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Smith", "age" : 30, "profession" : "hacker" }
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar" }
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred" }
+> db.people.find({ name : { $lt: "D" } } )
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+> db.people.find({ name : { $lt: "D", $gt : "B" } } )
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+
+
+> db.people.find()
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Smith", "age" : 30, "profession" : "hacker" }
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar" }
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred" }
+{ "_id" : ObjectId("56f57021a91791f704d4eec8"), "name" : 42 }
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35, "profession" : "baker" }
+
+#
+#
+#   $exists
+#   find documents where the profession field exist
+#
+#
+> db.people.find({ profession : { $exists:true} })
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Smith", "age" : 30, "profession" : "hacker" }
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35, "profession" : "baker" }
+#find the documents where name is of type string(2) https://docs.mongodb.org/manual/reference/bson-types/
+> db.people.find({ name : {$type : 2}  })
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Smith", "age" : 30, "profession" : "hacker" }
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar" }
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred" }
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35, "profession" : "baker" }
+#
+#
+#REGEX
+#
+#
+#find docs whith value "a" inside the name field
+> db.people.find({ name : {$regex : "a"}  })
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar" }
+#REGEX
+#find docs whith value "e" at the end of the name field
+> db.people.find({ name : {$regex : "e$"}  })
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+#REGEX
+#find docs whith value "A" at the beggining of the name field
+> db.people.find({ name : {$regex : "^A"}  })
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+#quiz
+#a query that retrieves documents from a users collection
+#where the name has a "q" in it, and the document has an email field.
+db.users.find({ name: {$regex:"q"}, email:{ $exists:true} })
+
+#
+#
+#OR OPERATOR:
+#
+#
+#the docs must comply one of the queries defined
+#find docs where the name ends with "e" OR the age field exists
+> db.people.find({ $or : [ { name: { $regex:"e$"}}, {age : {$exists:true}} ] })
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Smith", "age" : 30, "profession" : "hacker" }
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35, "profession" : "baker" }
+
+#quiz:
+#using $or
+#How would you find all documents in the scores collection where the score is less than 50 or greater than 90?
+db.scores.find({ $or : [{ score:{$lt:50} }, {score:{$gt:90}}] });
+
+
+#
+#    $and OPERATOR
+#
+
+> db.people.find({ $and : [ { name: { $gt : "C" }}, {name : { $regex : "a" }} ] })
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar" }
+# operator $and is not common
+#the same result we can achived with:
+> db.people.find({ name: { $gt : "C", $regex : "a" }})
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar" }
+#The following query does not work as expected:
+> db.scores.find( { score:{ $gt:50 }, score:{ $lt:60}} )
+#The last query find all docs with score lt 60
+#to achive to find docs gt 50 and lt 60 you should:
+> db.scores.find( { score:{ $gt:50, $lt:60}} )
+#OR:
+> db.scores.find({ $and : [ { score: { $gt : 50 }}, {score : { $lt : 60 }} ] })
+
+

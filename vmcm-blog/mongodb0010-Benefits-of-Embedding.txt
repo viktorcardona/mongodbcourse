@@ -1,0 +1,9 @@
+***********************
+***********************     Benefits of Embedding
+***********************
+
+Benefits of Embedding
+------------------------------
+
+Improved Read Performance
+One Round trip to the DB

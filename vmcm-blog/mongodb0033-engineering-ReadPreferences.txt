@@ -1,0 +1,30 @@
+*************************
+*************************   Read Preferences
+*************************
+
+About Replication
+.................
+
+The reads and the writes by default goes to the primary node.
+But you can read from the secondaries. But the data maybe could not be synchronized yet.
+
+Read Preferences Values:
+
+    *Primary          -> default read preference
+    *PrimaryPreferred -> read from primary but if it goes down read from the secondary
+    *Secondary
+    *SecondaryPreferred
+    *Nearest          -> reads from the closest based on ping time
+
+Quiz: Read Preferences
+
+You can configure your applications via the drivers to read from secondary nodes within a replica set. What are the reasons that you might not want to do that? Check all that apply.
+
+
+1. If your write traffic is great enough, and your secondary is less powerful than the primary, you may overwhelm the secondary, which must process all the writes as well as the reads. Replication lag can result.
+2. You may not read what you previously wrote to MongoDB on a secondary because it will lag behind by some amount.
+3. If the secondary hardware has insufficient memory to keep the read working set in memory, directing reads to it will likely slow it down.
+4. Reading from a secondary prevents it from being promoted to primary.
+
+Answer: 1, 2 and 3
+

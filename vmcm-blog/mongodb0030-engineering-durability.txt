@@ -1,0 +1,58 @@
+*************************
+*************************   Write Concern
+*************************
+
+
+An update or insert to mongoDB is really an update or insert in memory, then, the journal writes the update or insert on disk periodically.
+So,
+    if the app receives w=1, means the update was done on memory.
+    if the app receives j=true, means the update was done on disk.
+
+By default the app receives w=1, so it is really fast, because if the app wait for j=true it will be slower, maybe 100 or 1000 times.
+
+If the server writes on memory, then the app receives w=1, then the server crash, so the data is lost.
+
+
+
+W   |    j
+------------
+1   |   false        Fast, small window of vulnerability.   DEFAULT
+1   |   true         Slow
+0   |   unack
+
+
+Quiz: Write Concern
+
+Provided you assume that the disk is persistent, what are the w and j settings required to guarantee that an insert or update has been written all the way to disk.
+
+w=0, j=0
+w=1, j=1
+w=2, j=0
+w=1, j=0
+
+Answer: w=1, j=1
+
+
+*************************
+*************************   Network Errors
+*************************
+
+            insert
+App --------------------->   Mongo
+            Error
+    <---------------------
+
+In this case we don not know if the insert was or not successful!
+
+
+Quiz: Network Errors
+
+What are the reasons why an application may receive an error back even if the write was successful. Check all that apply.
+
+1. The network TCP connection between the application and the server was reset after the server received a write but before a response could be sent.
+2. The MongoDB server terminates between receiving the write and responding to it.
+3. The network fails between the time of the write and the time the client receives a response to the write.
+4. The write violates a primary key constraint on the collection.
+
+Answer: 1, 2 and 3
+

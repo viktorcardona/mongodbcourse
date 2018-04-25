@@ -1,0 +1,100 @@
+#Quiz: MongoDB Schema Design
+----------------------------
+What's the single most important factor in designing your application schema within MongoDB?
+Answer:
+Matching the data access patterns of your application.
+
+Blog schema design:
+------------------
+collection:
+post
+{
+    "_id" : "",
+    "author" : "",
+    "body" : "",
+    "comments" : [
+                    {
+                        "body" : ""
+                        "email" : ""
+                        "author" : ""
+                    },{
+                        "body" : ""
+                        "email" : ""
+                        "author" : ""
+                    }
+    ],
+    "date" : "",
+    "permalink" : "",
+    "tags" : [
+        "cycling",
+        "mongodb",
+        "swimming"
+    ],
+    "title" : ""
+}
+#Quiz: Mongo Design for Blog
+Which data access pattern is not well supported by the blog schema?
+a. Collecting the most recent blog entries for the blog home page
+b. Collecting all the information to display a single post
+c. Collecting all comments by a single author
+d. Providing a table of contents by tag
+Answer: d
+
+
+Alternative design for Blog:
+---------------------------
+
+Collection  Collection      Collection
+Post        Comments        Tags
+-_id        -id             -id
+-title      -postId         -tag
+-body       -author         -postId
+-author     -email
+-date       -order
+This design does not work particularly well, although it might seem the most natural comming from the relational world.
+
+!Always try to embed data where you can, prejoin it where you can.!
+
+Living without constraints
+--------------------------
+    How do you live without foreign key constraints and keep your data consistent?
+        In particular embedding actually helps, so the first design is particularly a good one. (the one with one collection named post)
+
+#Quiz: Living Without Constraints
+What does Living Without Constraints refer to?
+a. Living every day like it's your last
+b. Saying whatever you want when you want it
+c. Keeping your data consistent even though MongoDB lacks foreign key constraints
+d. Wearing no belt
+Answer: c
+
+Living without transactions
+---------------------------
+
+Mongo DB does not have:
+    Transactions: ACID Atomicity, Consistency, Isolation, Durability
+
+Mongo DB has:
+    Atomic Operations
+        When you work on a single doc that work will be completed before anyone else sees the doc.
+
+1.  Restructure your code
+        You are working on a single doc and taking advantage of the atomic operations within a doc
+
+2.  Implement in software
+        Implements some sort of locking in software.
+
+3.  Tolerate a little bit of inconsistency
+
+#Quiz: Living Without Transactions
+Which of the following operations operate atomically within a single document? Check all that apply
+a. Update
+b. findAndModify
+c. $addToSet (within an update)
+d. $push within an update
+Answer: a, b, c, d
+
+
+
+
+

@@ -1,0 +1,33 @@
+Some commands:
+
+db.users.insert({'name':'Martin Cardona', 'city_of_birth':'Bogota'})
+#WriteResult({ "nInserted" : 1 })
+db.users.find();
+#{ "_id" : ObjectId("56ecc98488ccec0b40b5f18b"), "name" : "Martin Cardona", "city_of_birth" : "Bogota" }
+db.users.find().pretty()
+#{
+#	"_id" : ObjectId("56ecc98488ccec0b40b5f18b"),
+#	"name" : "Martin Cardona",
+#	"city_of_birth" : "Bogota"
+#}
+db.users.insert({'name':'Isabella Cardona', 'city_of_birth':'Bogota', 'favorite_color':'pink'})
+#WriteResult({ "nInserted" : 1 })
+db.users.find()
+#{ "_id" : ObjectId("56ecc98488ccec0b40b5f18b"), "name" : "Martin Cardona", "city_of_birth" : "Bogota" }
+#{ "_id" : ObjectId("56ecca9288ccec0b40b5f18c"), "name" : "Isabella Cardona", "city_of_birth" : "Bogota", "favorite_color" : "pink" }
+#
+> var j = db.users.findOne({'name':'Martin Cardona'})
+> j
+{
+	"_id" : ObjectId("56ecc98488ccec0b40b5f18b"),
+	"name" : "Martin Cardona",
+	"city_of_birth" : "Bogota"
+}
+> j.favorite_color = 'blue'
+blue
+> db.users.save(j)
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.users.find()
+{ "_id" : ObjectId("56ecc98488ccec0b40b5f18b"), "name" : "Martin Cardona", "city_of_birth" : "Bogota", "favorite_color" : "blue" }
+{ "_id" : ObjectId("56ecca9288ccec0b40b5f18c"), "name" : "Isabella Cardona", "city_of_birth" : "Bogota", "favorite_color" : "pink" }
+

@@ -1,0 +1,166 @@
+**********************
+**********************  explain();
+**********************
+
+-How the query is executed.
+-What indexes are using
+-How many docs are inspected
+-It does not bring the data
+
+db.foo.find().explain();
+
+The preferable wy of using db.mycollection.explain() that returns an explainable object:
+
+    db.foo.explain().find();
+    db.foo.explain().update();
+    db.foo.explain().remove();
+    db.foo.explain().aggregate();
+    db.foo.explain().help();
+
+create a collection and insert docs like this:
+by mongo shell:
+for(i=0; i<100;i++){
+    for( j=0; j<100;j++){
+        x = [];
+        for(k=0; k<100;k++){
+            x.push({ a : i, b : j, c : k, _id : (100*100*i+100*j+k)})
+        };
+        db.example.insert(x)
+    }
+}
+
+{ "_id": 1, "a" : 0, "b" : 1, "c" : 35}
+
+
+db.example.find();
+
+db.example.createIndex({a:1, b:1});
+db.example.createIndex({b:1});
+
+var exp = db.example.explain();
+exp.help();
+.
+.
+exp.find({a:17, b:55}).sort({b:-1});
+check the information related to
+    "queryPlanner"
+    "winningPlan" : the most interesting part
+    "rejectedPlans"
+
+the same result:
+db.example.explain().find({a:17, b:55}).sort({b:-1});
+
+with explain object you can do:
+exp.find({a:17, b:55}).sort({b:-1}).count();
+
+
+#Quiz: Using Explain
+#Which of the following are valid ways to find out which index uses a particular query? Check all that apply.
+a. curs = db.example.find( { a : 1, b : 2 } ); curs.explain()
+b. db.example.explain().remove( { a : 1, b : 2 } )
+c. var exp = db.example.explain(); exp.find( { a : 1, b : 2 } )
+d. db.example.explain().find( { a : 1, b : 2 } )
+e. db.example.remove( { a : 1, b : 2 } ).explain()
+f. db.example.find( { a : 1, b : 2 } ).explain()
+Answer: a,b,c,d,f
+e is not valid because db.example.remove( { a : 1, b : 2 } ) does not return a cursor.
+
+
+
+**********************
+**********************  explain("executionStats");
+**********************
+
+var exp = db.example.explain("executionStats");
+exp.find({a:17, b:55});
+
+check for the info:
+    "executionStats" this is related to the winningPlan
+        "nReturned" number of docs returned, 100 docs
+
+you can delete the index:
+db.example.dropIndex({a:1, b:1});
+and you can see that "nReturned" is now 10000 docs
+
+
+**********************
+**********************  explain("allPlansExecution");
+**********************
+
+made a decision about which index to use:
+
+var exp = db.example.explain("allPlansExecution");
+exp.find({a:17, b:55});
+
+this give more info.
+
+
+
+@Quiz
+#Quiz: Explain: Verbosity
+#Given the following output from explain, what is the best description of what happened during the query?
+> exp = db.example.explain("executionStats")
+Explainable(test.example)
+> exp.find( { a : 7 } )
+{
+	"queryPlanner" : {
+		"plannerVersion" : 1,
+		"namespace" : "test.example",
+		"indexFilterSet" : false,
+		"parsedQuery" : {
+			"a" : {
+				"$eq" : 7
+			}
+		},
+		"winningPlan" : {
+			"stage" : "COLLSCAN",
+			"filter" : {
+				"a" : {
+					"$eq" : 7
+				}
+			},
+			"direction" : "forward"
+		},
+		"rejectedPlans" : [ ]
+	},
+	"executionStats" : {
+		"executionSuccess" : true,
+		"nReturned" : 10000,
+		"executionTimeMillis" : 619,
+		"totalKeysExamined" : 0,
+		"totalDocsExamined" : 999999,
+		"executionStages" : {
+			"stage" : "COLLSCAN",
+			"filter" : {
+				"a" : {
+					"$eq" : 7
+				}
+			},
+			"nReturned" : 10000,
+			"executionTimeMillisEstimate" : 520,
+			"works" : 1000001,
+			"advanced" : 10000,
+			"needTime" : 990000,
+			"needFetch" : 0,
+			"saveState" : 7812,
+			"restoreState" : 7812,
+			"isEOF" : 1,
+			"invalidates" : 0,
+			"direction" : "forward",
+			"docsExamined" : 999999
+		}
+	},
+	"serverInfo" : {
+		"host" : "cross-mb-air.local",
+		"port" : 27017,
+		"version" : "3.0.1",
+		"gitVersion" : "534b5a3f9d10f00cd27737fbcd951032248b5952"
+	},
+	"ok" : 1
+}
+
+a. The query used an index called BasicCursor and returned its results in 619 milliseconds
+b. The query scanned 999,999 documents, returning 10,000 in 619 milliseconds.
+c. The query scanned 10,000 documents and return in 520 milliseconds.
+d. The query's explain plan is performed on a cursor.
+Answer: b

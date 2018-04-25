@@ -1,0 +1,100 @@
+***********************
+***********************     Relations
+***********************
+
+One to One Relation
+----------------------------
+Example:
+	Employee:Resume
+	Patient:Medical History
+
+
+Employee:Resume
+Options:
+Employee Collection with resume-id-field, Resume Collection
+Employee Collection, Resume Collection with employee-id-field
+Employee Collection with Resume Embeded
+Resume Collection with Employee Embeded
+The option depends on how you access the data
+		depends on the frequency of access
+		size of items= if you update the resume but not the employee, so you can decide to keep the collecctions separated
+		Of course, if the resume is larger than 16 MB
+		Atomic operations, if you need consistency you might decide to keep employee and resume inside one collection
+
+#Quiz: One to One Relations
+What's a good reason you might want to keep two documents that are related to each other one-to-one in separate collections? Check all that apply.
+a. Because you want to allow atomic update of both documents at once.
+b. To reduce the working set size of your application. Reduce the use of memory in the app.
+c. To enforce foreign key constraints
+d. Because the combined size of the documents would be larger than 16MB
+Answer: b, d
+Note: for c option, in mongo db foreign key constraints does not exist.
+
+
+One to Many Relation
+----------------------
+
+Example:
+
+City ---------- Person
+New York--------8 million people
+
+So we have to use true linking
+
+Collections:
+People			City
+-name :  "Victor"       -_id : "NYC"
+-city : "NYC"
+
+
+One to Few Relation (It is a One to Many)
+--------------------
+Blog Schema
+
+Post             Comments
+1 post           10 comments
+
+In this case it is feasible to have a collection
+
+Post Collection
+-name
+-comments : [ {},{} ]
+
+#Quiz: One to Many Relations
+When is it recommended to represent a one to many relationship in multiple collections?
+a. Always
+b. Whenever the many is large
+c. Whenever the many is actually few
+d. Never
+Answer: b
+
+
+Many to Many Relations
+------------------------
+
+Book		Author
+
+Student         Teacher
+
+
+It tends to be few to few
+
+Books		Author
+Each book probably has a small number of authors, and each author has a small number of books, so we can link them with an array:
+
+You have 2 collections and they are linked, It is not easy to maintain but for performance reason you can do it:
+
+Author			Book
+-_id:27			-_id:12
+-name			-title
+-books : [12,7,8]	-authors : [27]
+
+or you could have one collection:
+but maybe is not recommended because you can have update anomalies
+
+Author
+-_id:27
+-name
+-books : [ { title:""} ]
+
+Think in Students:Teachers, maybe you can not embed students into teacher, or viceversa, because, you must have a teacher in order to create a student, or viceversa, and that is not the case for sure.

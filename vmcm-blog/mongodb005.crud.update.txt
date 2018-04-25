@@ -1,0 +1,161 @@
+> db.people.find();
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Smith", "age" : 30, "profession" : "hacker" }
+#
+#   Take care of what happens when an update statement is executed:::
+#
+> db.people.update( { name : "Smith"  } , { name : "Thompson" , salary : 50000  } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.people.find();
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Thompson", "salary" : 50000 }
+
+#
+#       $set
+#       $inc
+#
+> db.people.find();
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Thompson", "salary" : 50000 }
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+> db.people.update( { name : "Alice"  } , { $set : { age : 30 } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.people.find( { name : "Alice" } );
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice", "age" : 30 }
+> db.people.update( { name : "Alice"  } , { $set : { age : 31 } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.people.find( { name : "Alice" } );
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice", "age" : 31 }
+> db.people.update( { name : "Alice"  } , { $inc : { age : 1 } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.people.find( { name : "Alice" } );
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice", "age" : 32 }
+
+#
+#   $unset
+#
+> db.people.find( { name : "Jones" } )
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35, "profession" : "baker" }
+> db.people.update( { name : "Jones" } , { $unset : { profession : 1 }  } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.people.find( { name : "Jones" } )
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35 }
+
+
+#
+#
+#   Arrays
+#
+#
+#
+> db.arrays.find();
+> db.arrays.insert( { _id : 0 , a : [1,2,3,4] } );
+WriteResult({ "nInserted" : 1 })
+> db.arrays.find();
+{ "_id" : 0, "a" : [ 1, 2, 3, 4 ] }
+> db.arrays.update( { _id : 0 }, { $set : { "a.2" : 5 } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.arrays.find();
+{ "_id" : 0, "a" : [ 1, 2, 5, 4 ] }
+> db.arrays.update( { _id : 0 }, { $push : { a : 6 } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.arrays.find();
+{ "_id" : 0, "a" : [ 1, 2, 5, 4, 6 ] }
+> db.arrays.update( { _id : 0 }, { $pop : { a : 1 } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.arrays.find();
+{ "_id" : 0, "a" : [ 1, 2, 5, 4 ] }
+> db.arrays.update( { _id : 0 }, { $pop : { a : -1 } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.arrays.find();
+{ "_id" : 0, "a" : [ 2, 5, 4 ] }
+> db.arrays.update( { _id : 0 }, { $pushAll : { a : [7,8,9] } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.arrays.find();
+{ "_id" : 0, "a" : [ 2, 5, 4, 7, 8, 9 ] }
+> db.arrays.update( { _id : 0 }, { $pull : { a : 5 } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.arrays.find();
+{ "_id" : 0, "a" : [ 2, 4, 7, 8, 9 ] }
+> db.arrays.update( { _id : 0 }, { $pullAll : { a : [2,4,8] } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.arrays.find();
+{ "_id" : 0, "a" : [ 7, 9 ] }
+> db.arrays.update( { _id : 0 }, { $addToSet : { a : 5 } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.arrays.find();
+{ "_id" : 0, "a" : [ 7, 9, 5 ] }
+> db.arrays.update( { _id : 0 }, { $addToSet : { a : 5 } } );
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 0 })
+> db.arrays.find();
+{ "_id" : 0, "a" : [ 7, 9, 5 ] }
+>
+
+
+#
+#
+#       upsert
+#       updates or creates if it does not exist
+#
+#
+> db.people.update( { name : "George"  }, { $set : { age : 40 } }, {upsert : true} );
+WriteResult({
+	"nMatched" : 0,
+	"nUpserted" : 1,
+	"nModified" : 0,
+	"_id" : ObjectId("56f717b7408b18af57f93b53")
+})
+> db.people.find();
+{ "_id" : ObjectId("56f717b7408b18af57f93b53"), "name" : "George", "age" : 40 }
+#quiz:
+#After performing the following update on an empty collection
+db.foo.update( { username : 'bar' }, { '$set' : { 'interests': [ 'cat' , 'dog' ] } } , { upsert : true } );
+#What could be a document in the collection?
+#answer:
+{ "_id" : ObjectId("507b78232e8dfde94c149949"), "interests" : [ "cat", "dog" ], "username" : "bar" }
+
+
+
+#
+#
+#   Multi Update
+#   { multi : true}
+#
+#
+> db.people.find();
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Thompson", "salary" : 50000 }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar" }
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred" }
+{ "_id" : ObjectId("56f57021a91791f704d4eec8"), "name" : 42 }
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35 }
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice", "age" : 32 }
+{ "_id" : ObjectId("56f717b7408b18af57f93b53"), "name" : "George", "age" : 40 }
+{ "_id" : ObjectId("56f718b8408b18af57f93b54"), "name" : "Williams" }
+> db.people.update( { } , { $set : { title : "Dr"} } , { multi : true} );
+WriteResult({ "nMatched" : 11, "nUpserted" : 0, "nModified" : 11 })
+> db.people.find();
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Thompson", "salary" : 50000, "title" : "Dr" }
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35, "title" : "Dr" }
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice", "age" : 32, "title" : "Dr" }
+{ "_id" : ObjectId("56f717b7408b18af57f93b53"), "name" : "George", "age" : 40, "title" : "Dr" }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred", "title" : "Dr" }
+{ "_id" : ObjectId("56f57021a91791f704d4eec8"), "name" : 42, "title" : "Dr" }
+{ "_id" : ObjectId("56f718b8408b18af57f93b54"), "name" : "Williams", "title" : "Dr" }
+#
+#quiz
+#
+Quiz: Multi-update
+Recall the schema of the scores collection:
+{
+    "_id" : ObjectId("50844162cb4cf456b4694f8"),
+    "student" : 0,
+    "type" : "exam",
+    "score" : 75
+}
+How would you give every record whose score was less than 70 an extra 20 points?
+#answer:
+db.scores.update( { score : { $lt : 70} }, { $inc : {score: 20 } } , {multi:true} );

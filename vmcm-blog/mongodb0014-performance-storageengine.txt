@@ -1,0 +1,134 @@
+
+
+MongDB -----------> StoraEngine -----------> Disk
+
+Storage Engine is like a plugin.
+
+Storage Engine:
+    MMAP
+        Default
+
+    Wired Tiger
+        2014
+
+Quiz: Storage Engines: Introduction
+The storage engine directly determines which of the following?
+Check all that apply.
+a. The data file format
+b. The wire protocol for the drivers
+c. Format of indexes
+d. Architecture of a cluster
+
+Answer: a and c
+
+**********************************************************************************************************
+
+***********************
+***********************     MMAP V1
+***********************
+
+by command line:
+
+man mmap
+
+then, the system shows:
+------------------------------------------------------------------------------------------------
+MMAP(2)                     BSD System Calls Manual                    MMAP(2)
+
+NAME
+     mmap -- allocate memory, or map files or devices into memory
+
+LIBRARY
+     Standard C Library (libc, -lc)
+
+SYNOPSIS
+     #include <sys/mman.h>
+
+     void *
+     mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
+
+DESCRIPTION
+     The mmap() system call causes the pages starting at addr and continuing for at most len bytes to be mapped from the object described by fd, starting
+     at byte offset offset.  If offset or len is not a multiple of the pagesize, the mapped region may extend past the specified range.  Any extension
+     beyond the end of the mapped object will be zero-filled.
+------------------------------------------------------------------------------------------------
+
+In fact, the minimum record space in MongoDB 3.0 is 32 bytes.
+
+MMAP uses a cache system called Virtual Memory
+
+1.  Collection Level Locking
+2.  In Place Updates
+3.  Power of Two Sizes
+
+------------------------------------------------------------------------------------------------
+#Quiz: Storage Engines: MMAPv1
+#Which of the following statements about the MMAPv1 storage engine are true?
+#Check all that apply.
+a. MMAPv1 offers document-level locking
+b. MMAPv1 automatically allocates power-of-two-sized documents when new documents are inserted
+c. MMAPv1 is built on top of the mmap system call that maps files into memory
+d. MongoDB manages the memory used by each mapped file, deciding which parts to swap to disk.
+
+Answer: b and c
+
+The correct answers are:
+
+MMAPv1 automatically allocates power-of-two-sized documents when new documents are inserted
+This is handled by the storage engine.
+MMAPv1 is built on top of the mmap system call that maps files into memory
+This is the basic idea behind why we call it MMAPv1.
+Wrong ones are:
+
+MMAPv1 offers document-level locking
+It has collection level locking.
+MongoDB manages the memory used by each mapped file, deciding which parts to swap to disk.
+The operating system handles this.
+Previous
+------------------------------------------------------------------------------------------------
+
+
+**********************************************************************************************************
+
+***********************
+***********************     Wired Tiger
+***********************
+
+In this lecture, Andrew uses a single '-' to invoke arguments to the mongod process. While this works, the preferred syntax uses two dashes, so, for example, to invoke a WiredTiger storage engine, you would use:
+mongod --storageEngine wiredTiger
+
+1.  Document Level Concurrency
+2.  Compression of data
+    Compression of indexes
+3.  No Inplace Update
+
+killall mongod
+mkdir WT
+mongod -dbpath WT -storageEngine wiredTiger
+
+then you insert a doc in any collection then you type:
+db.mycollection.stats();
+.
+.
+.
+.
+    "wiredTiger" : {
+        "metadata" : {
+                "formatVersion" : 1
+        },
+        "creationString" : {...}
+    }
+.
+.
+.
+
+#Quiz: Storage Engines: WiredTiger
+#Which of the following are features of the WiredTiger storage engine?
+a. In-place update of documents.
+b. Power-of-two document padding.
+c. Document-level concurrency
+d. Compression
+e. Turbocharged
+Answer: c and d
+
+

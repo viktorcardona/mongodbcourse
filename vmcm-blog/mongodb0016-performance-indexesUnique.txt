@@ -1,0 +1,100 @@
+**********************
+**********************  Unique Indexes
+**********************
+
+> db.stuff.drop();
+>true
+> db.stuff.insert({'thing':'apple'});
+WriteResult({ "nInserted" : 1 })
+> db.stuff.insert({'thing':'pear'});
+WriteResult({ "nInserted" : 1 })
+> db.stuff.insert({'thing':'apple'});
+WriteResult({ "nInserted" : 1 })
+> db.stuff.find();
+{ "_id" : ObjectId("5705cf9f95109d1af5ba916c"), "thing" : "apple" }
+{ "_id" : ObjectId("5705cfb095109d1af5ba916d"), "thing" : "pear" }
+{ "_id" : ObjectId("5705cfb395109d1af5ba916e"), "thing" : "apple" }
+
+> db.stuff.createIndex({thing:1});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+> db.stuff.dropIndex({thing:1});
+{ "nIndexesWas" : 2, "ok" : 1 }
+> db.stuff.createIndex({thing:1}, {unique:true});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"errmsg" : "exception: E11000 duplicate key error index: school.stuff.$thing_1 dup key: { : \"apple\" }",
+	"code" : 11000,
+	"ok" : 0
+}
+
+> db.stuff.find();
+{ "_id" : ObjectId("5705cf9f95109d1af5ba916c"), "thing" : "apple" }
+{ "_id" : ObjectId("5705cfb095109d1af5ba916d"), "thing" : "pear" }
+{ "_id" : ObjectId("5705cfb395109d1af5ba916e"), "thing" : "apple" }
+
+> db.stuff.remove({thing: 'apple'}, {justOne: true});
+WriteResult({ "nRemoved" : 1 })
+
+> db.stuff.find();
+{ "_id" : ObjectId("5705cfb095109d1af5ba916d"), "thing" : "pear" }
+{ "_id" : ObjectId("5705cfb395109d1af5ba916e"), "thing" : "apple" }
+
+> db.stuff.createIndex({thing:1}, {unique:true});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+
+> db.stuff.find();
+{ "_id" : ObjectId("5705cfb095109d1af5ba916d"), "thing" : "pear" }
+{ "_id" : ObjectId("5705cfb395109d1af5ba916e"), "thing" : "apple" }
+
+> db.stuff.insert({'thing':'pear'});
+WriteResult({
+	"nInserted" : 0,
+	"writeError" : {
+		"code" : 11000,
+		"errmsg" : "E11000 duplicate key error index: school.stuff.$thing_1 dup key: { : \"pear\" }"
+	}
+})
+
+
+> db.stuff.getIndexes();
+[
+	{
+		"v" : 1,
+		"key" : {
+			"_id" : 1
+		},
+		"name" : "_id_",
+		"ns" : "school.stuff"
+	},
+	{
+		"v" : 1,
+		"unique" : true,
+		"key" : {
+			"thing" : 1
+		},
+		"name" : "thing_1",
+		"ns" : "school.stuff"
+	}
+]
+
+--From the above note that:
+    "unique" : true,
+    "name" : "thing_1",
+  But _id index does not say that it is unique, but It is! because is the key of docs in collections
+
+
+#Quiz: Index Creation Option, Unique
+#Please provide the mongo shell command to create a unique index on student_id, class_id, ascending for the collection students.
+Answer:
+db.students.createIndex({"student_id":1, "class_id":1}, {"unique": true});

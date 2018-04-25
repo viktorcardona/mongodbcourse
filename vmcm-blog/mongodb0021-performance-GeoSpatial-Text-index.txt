@@ -1,0 +1,111 @@
+Quiz: Number of Index Entries
+
+Let's say you update a document with a key called tags and that update causes the document to need to get moved on disk. Assume you are using the MMAPv1 storage engine. If the document has 100 tags in it, and if the tags array is indexed with a multikey index, how many index points need to be updated in the index to accommodate the move? Put just the number below.
+
+100
+
+
+Geospatial Indexes
+-------------------
+
+You need 2 fields, x and y coordinates, for example, imagine the following doc:
+
+{
+"_id":1
+"name": "Tickle Candy"
+"type": "Food"
+"location": [
+	41.232,
+	-75.343
+]
+}
+
+then:
+db.stores.createIndex({location: '2d', type:1});
+db.stores.find({location: { $near: [50,50]} });
+then it returns in increasing distances order
+
+Quiz: Geospatial Indexes
+Suppose you have a 2D geospatial index defined on the key location in the collection places.
+Write a query that will find the closest three places (the closest three documents) to the location 74, 140.
+Answer:
+db.places.find({location: {$near: [74,140]}}).limit(3);
+
+
+Geospatial Spherical
+---------------------
+
+
+places:
+
+{
+ "_id"
+ "name"
+ "city"
+ "location": {
+      "type" : "Point",
+      "coordinates" : [
+           -122.1691291
+            37.44348554
+      ]
+},
+"type": "park"
+}
+
+
+db.places.createIndex({'location':'2dsphere'});
+
+db.places.find({
+	location:{
+		$near: {
+			$geometry: {
+				type: "Point",
+				coordinates: [-122.16641, 37.4278925], //longitude, latitude
+				$maxDistance:2000  //meters
+			}
+		}
+	}
+}).pretty();
+
+Quiz: Geospatial Spherical
+
+What is the query that will query a collection named "stores" to return the stores that are within 1,000,000 meters of the location latitude=39, longitude=-130? Type the query in the box below.
+Assume the stores collection has a 2dsphere index on "loc" and please use the "$near" operator. Each store record looks like this:
+
+{ "_id" : { "$oid" : "535471aaf28b4d8ee1e1c86f" }, "store_id" : 8, "loc" : { "type" : "Point", "coordinates" : [ -37.47891236119904, 4.488667018711567 ] } }
+
+
+Answer:
+db.stores.find({ loc:{ $near:	{ $geometry: { type: "Point", coordinates: [-130, 39]}, $maxDistance:1000000 } } })
+
+
+
+Text Indexes
+-----------------------
+{
+"words" : "dog shrub ruby"
+}
+
+so:
+db.sentences.find('words': 'dog shrub ruby');//this find the doc
+db.sentences.find('words': 'dog ruby');//this WILL NOT find the doc
+db.sentences.find('words': 'dog');//this WILL NOT find the doc
+so:
+db.sentences.createIndex('words': 'text');
+
+so:
+db.sentences.find({$text:{$search:'dog'}});//returns docs where words field has dog word
+db.sentences.find('words': 'dog');//this WILL NOT find the doc
+so, you can find by the best match:
+db.sentences.find({$text:{$search:'dog tree obsidian'}}, {score:{$meta: 'textScore'}}).sort({score:{$meta:'testScore'}});
+from the best to the worst result
+
+
+#Quiz: Text Indexes
+You create a text index on the "title" field of the movies collection, and then perform the following text search:
+> db.movies.find( { $text : { $search : "Big Lebowski" } } )
+Which of the following documents will be returned, assuming they are in the movies collection? Check all that apply.
+a. { "title" : "The Big Lebowski" , star: "Jeff Bridges" }
+b. { "title" : "Big" , star : "Tom Hanks" }
+c. { "title" : "Big Fish" , star: "Ewan McGregor" }
+Answer: a, b and c

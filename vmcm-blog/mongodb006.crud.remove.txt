@@ -1,0 +1,64 @@
+> db.people.find();
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Thompson", "salary" : 50000, "title" : "Dr" }
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35, "title" : "Dr" }
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice", "age" : 32, "title" : "Dr" }
+{ "_id" : ObjectId("56f717b7408b18af57f93b53"), "name" : "George", "age" : 40, "title" : "Dr" }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred", "title" : "Dr" }
+{ "_id" : ObjectId("56f57021a91791f704d4eec8"), "name" : 42, "title" : "Dr" }
+{ "_id" : ObjectId("56f718b8408b18af57f93b54"), "name" : "Williams", "title" : "Dr" }
+> db.people.remove({ name : "Alice" })
+WriteResult({ "nRemoved" : 1 })
+> db.people.find();
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Thompson", "salary" : 50000, "title" : "Dr" }
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35, "title" : "Dr" }
+{ "_id" : ObjectId("56f717b7408b18af57f93b53"), "name" : "George", "age" : 40, "title" : "Dr" }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred", "title" : "Dr" }
+{ "_id" : ObjectId("56f57021a91791f704d4eec8"), "name" : 42, "title" : "Dr" }
+{ "_id" : ObjectId("56f718b8408b18af57f93b54"), "name" : "Williams", "title" : "Dr" }
+> db.people.remove({ name : { $gt : "M" } })
+WriteResult({ "nRemoved" : 2 })
+> db.people.find();
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35, "title" : "Dr" }
+{ "_id" : ObjectId("56f717b7408b18af57f93b53"), "name" : "George", "age" : 40, "title" : "Dr" }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar", "title" : "Dr" }
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred", "title" : "Dr" }
+{ "_id" : ObjectId("56f57021a91791f704d4eec8"), "name" : 42, "title" : "Dr" }
+> db.people.remove()
+2016-03-26T18:45:30.622-0500 E QUERY    Error: remove needs a query
+    at Error (<anonymous>)
+    at DBCollection._parseRemove (src/mongo/shell/collection.js:305:32)
+    at DBCollection.remove (src/mongo/shell/collection.js:328:23)
+    at (shell):1:11 at src/mongo/shell/collection.js:305
+> db.people.remove({})
+WriteResult({ "nRemoved" : 8 })
+> db.people.find();
+#drop the collection is more efficient than deleting all the docs in a collection
+> db.people.drop();
+true
+> db.people.find();
+
+#
+#
+#
+#quiz:
+#Recall the schema of the scores collection:
+{
+	"_id" : ObjectId("50844162cb4cf4564b4694f8"),
+	"student" : 0,
+	"type" : "exam",
+	"score" : 75
+}
+#Delete every document with a score of less than 60.
+#answer:
+db.scores.remove( { score : { $lt:60 } } );

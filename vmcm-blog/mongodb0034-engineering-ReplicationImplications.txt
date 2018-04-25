@@ -1,0 +1,33 @@
+*************************
+*************************   Implications of Replications
+*************************
+
+
+Lecture Notes
+
+One thing to remember is that the driver will check, upon attempting to write, whether or not its write concern is valid.
+It will error if, for example, w=4 but there are 3 data-bearing replica set members.
+This will happen quickly in both the Java and pymongo drivers.
+Reading with an invalid readPreference will take longer, but will also result in an error.
+Be aware, though, that this behavior can vary a little between drivers and between versions.
+
+
+    -   Seed Lists          Members of the replica set
+    -   Write Concern       w=number of nodes to wait that acknowledge the writes, j=wait or not the write is done on disk of the primary, wtimeout=time to wait ack
+    -   Read Preferences    primeary by default
+    -   Errors can happen
+
+
+Quiz: Review of Implications of Replication
+
+If you set w=4 on a MongoClient and there are only three nodes in the replica set, how long will you wait in PyMongo for a response from an insert if you don't set a timeout?
+
+
+Comes back immediately
+About a minute
+About 10 seconds
+More than five minutes
+You will get an immediate error
+
+Answer: You will get an immediate error
+

@@ -1,0 +1,35 @@
+
+***********************
+***********************     Represent Trees
+***********************
+
+Represent Trees
+----------------------
+
+Categories:
+Home:outdoors:winter:snow
+
+Products
+-category:7
+-name:"Blow"
+
+Categories
+-_id:7
+name:
+ancestor : [3,5,7,8]
+
+#Quiz: Trees
+#Given the following typical document for a e-commerce category hierarchy collection called categories
+{
+  _id: 34,
+  name : "Snorkeling",
+  parent_id: 12,
+  ancestors: [12, 35, 90]
+}
+Which query will find all descendants of the snorkeling category?
+a. db.categories.find({ancestors:{'$in':[12,35,90]}})
+b. db.categories.find({parent_id: 34})
+c. db.categories.find({_id:{'$in':[12,35,90]}})
+d. db.categories.find({ancestors:34})
+ANSWER: d.
+

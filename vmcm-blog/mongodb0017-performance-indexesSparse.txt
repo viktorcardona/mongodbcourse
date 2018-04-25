@@ -1,0 +1,81 @@
+**********************
+**********************  Sparse Indexes
+**********************
+
+Docs of collection mycollection:
+
+{a:1,  b:2, c:5}
+{a:10, b:5, c:10}
+{a:13, b:17}
+{a:7,  b:23}
+
+There is not problem create an index for:
+a and b fields, because each value in each doc is unique.
+
+But there is a problem if you create an index for c field, because the last 2 docs has null value for c field.
+
+so,
+
+db.mycollection.createIndex({c:1}, {unique: true});
+shows the error:
+duplicated null value.
+
+
+db.mycollection.createIndex({c:1}, {unique: true, sparse: true});
+this creates the index without problems
+
+db.mycollection.sort({a:-1});
+
+
+#Quiz: Index Creation, Sparse
+#What are the advantages of a sparse index? Check all that apply.
+a. The index will be smaller than it would if it were not sparse.
+b. The index can be used to sort much more quickly in all cases.
+c. You can gain greater flexibility with creating Unique indexes.
+d. Your indexes can be multikey only if they are sparse.
+Answer: a and c
+
+
+
+
+**********************
+**********************  Index Creation Background
+**********************
+
+Index Creation:
+
+Foreground                      Background
+----------                      ----------
+ default
+ fast                            slow
+ Blocks reads and writes         Do not Blocks reads and writes
+
+
+While the index is created the mongodb blocks the collection, so you can not run a find on that collection.
+And the creation on the index could take some time, and it depends on the number of docs in the collection.
+
+
+
+Let's drop the index and then create again the index in background:
+
+> db.students.dropIndex({'scores.score':1});
+{ "nIndexesWas" : 2, "ok" : 1 }
+
+> db.students.createIndex({'scores.score':1}, {background: true});
+{
+	"createdCollectionAutomatically" : false,
+	"numIndexesBefore" : 1,
+	"numIndexesAfter" : 2,
+	"ok" : 1
+}
+
+So, you can run a find on that collection, it will not be block for readers!!!!!!!!
+
+
+#Quiz: Index Creation, Background
+#Which things are true about creating an index in the background in MongoDB. Check all that apply.
+a. A mongod instance can only build one background index at a time per database.
+b. Although the database server will continue to take requests, a background index creation still blocks the mongo shell that you are using to create the index.
+c. Creating an index in the background takes longer than creating it in the foreground
+d. In Mongo 2.2 and above, indexes are created in the background by default.
+Answer: b and c

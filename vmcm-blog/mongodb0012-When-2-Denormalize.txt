@@ -1,0 +1,10 @@
+***********************
+***********************     When to Denormalize
+***********************
+
+When to Denormalize
+-----------------------------
+
+1:1 		        Embed
+1:Many		Embed (from the many to the one)
+Many:Many	Link

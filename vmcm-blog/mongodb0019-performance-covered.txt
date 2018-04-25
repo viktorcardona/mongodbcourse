@@ -1,0 +1,34 @@
+**********************
+**********************  Covered Queries
+**********************
+
+Queries that no required to examine docs in order to return the result.
+This query is faster.
+
+You must project the query in order to return just the fields that are part of the index.
+So, if you have the index:
+{i:1, j:1}
+If you run the query:
+db.coll.find({i:45, j:23});
+this is going to examined a lot of docs, and you can see it with explain() object over the query
+But if you project the query to return just the fields of the index:
+db.coll.find({i:45, j:23}, {_id:0, a:1, b:1});
+this is going to examined 0 docs, so your query is going to be really fast.
+
+#Quiz: Covered Queries
+#You would like to perform a covered query on the example collection. You have the following indexes:
+
+{ name : 1, dob : 1 }
+{ _id : 1 }
+{ hair : 1, name : 1 }
+
+#Which of the following is likely to be a covered query? Check all that apply.
+
+a. db.example.find( { name : { $in : [ "Bart", "Homer" ] } }, {_id : 0, hair : 1, name : 1} )
+b. db.example.find( { name : { $in : [ "Bart", "Homer" ] } }, {_id : 0, dob : 1, name : 1} )
+c. db.example.find( { name : { $in : ["Alfred", "Bruce" ] } }, { name : 1, hair : 1 } )
+d. db.example.find( { _id : 1117008 }, { _id : 0, name : 1, dob : 1 } )
+
+Answer: b
+
+

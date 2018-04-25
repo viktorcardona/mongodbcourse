@@ -1,0 +1,222 @@
+*************************
+*************************   Replication
+*************************
+
+    Availability
+    Fault Tolerance
+
+More info:
+https://docs.mongodb.org/manual/core/replication-introduction/
+
+************
+Replica Set
+************
+
+    -It is a set of MongoDB nodes.
+    -They mirror each other the entire data
+    -One primary, an the other ones Secondary
+    -The primary receives all request from the app
+    -The primary replicates all to the nodes of the replica set
+    -If the primary fails, then one of the other nodes become primary.
+    -The min number of nodes is 3
+
+Replication
+
+Secondary members replicate data continuously after the initial sync.
+Secondary members copy the oplog from their sync from source and apply these operations in an asynchronous process.
+
+
+ w: 1 is the default write concern for MongoDB.
+
+ source:
+ https://docs.mongodb.org/manual/reference/write-concern/
+
+
+Quiz: Introduction to Replication
+
+What is the minimum original number of nodes needed to assure the election of a new Primary if a node goes down?
+
+1
+2
+3
+5
+
+Answer: 3
+
+
+
+*************************
+*************************   Replication Set Elections
+*************************
+
+
+Types of replica set nodes
+    Regular
+    Arbiter             (voting for a new primary)
+    Delayed / Regular   (can not become the primary - participate on elections)
+    Hidden              (can not become the primary - participate on elections)
+
+
+Quiz: Replica Set Elections
+
+Which types of nodes can participate in elections of a new primary?
+
+1. Regular replica set members
+2. Hidden Members
+3. Arbiters
+Lawyers
+
+Answer: 1, 2 and 3
+
+
+*************************
+*************************   Write Consistency
+*************************
+
+
+Quiz: Write Consistency
+
+During the time when failover is occurring, can writes successfully complete?
+
+Yes
+No
+
+Answer: No
+During failover the primary fails and then a new primary is elected, in this time, you can not complete a write
+
+
+
+*************************
+*************************   Creating a Replica Set
+*************************
+
+
+
+/*START.create_replica_set.sh It creates 3 dir*/
+#!/usr/bin/env bash
+
+mkdir -p /data/rs1 /data/rs2 /data/rs3
+mongod --replSet m101 --logpath "1.log" --dbpath /data/rs1 --port 27017 --oplogSize 64 --fork --smallfiles
+mongod --replSet m101 --logpath "2.log" --dbpath /data/rs2 --port 27018 --oplogSize 64 --smallfiles --fork
+mongod --replSet m101 --logpath "3.log" --dbpath /data/rs3 --port 27019 --oplogSize 64 --smallfiles --fork
+/*END.create_replica_set.sh*/
+
+
+Run the command:
+sh create_replica_set.sh
+
+
+/*START.init_replica.js*/
+config = { _id: "m101", members:[
+          { _id : 0, host : "localhost:27017"},
+          { _id : 1, host : "localhost:27018"},
+          { _id : 2, host : "localhost:27019"} ]
+};
+
+rs.initiate(config);
+rs.status();
+/*END.init_replica.js*/
+
+Run the command, from the node with port 27018:
+mongo --port 27018 < init_replica.js
+Now connect:
+mongo --port 27018
+then the console shows:
+rs1:SECONDARY>
+Then run:
+rs1:SECONDARY> rs.status();
+so, the 3 nodes are shown.
+
+Connect to the primary:
+mongo --port 27018
+rs1:PRIMARY>
+insert a doc:
+rs1:PRIMARY> db.people.insert({'name':'Isabella'});
+Connect to the secondary:
+mongo --port 27019
+rs1:SECONDARY> db.people.find();
+error: not maste and slaveOkfalse, code : 13435
+so, you set that you can read from a secondary:
+rs1:SECONDARY> rs.slaveOk()
+rs1:SECONDARY> db.people.find();
+{ "_id" : ObjectId("5gs9808sfsfsf"), "name" : "Isabella" }
+rs1:SECONDARY> rs.status()
+
+
+Quiz: Creating a Replica Set
+
+Which command, when issued from the mongo shell, will allow you to read from a secondary?
+
+db.isMaster()
+db.adminCommand({'readPreference':'Secondary"})
+rs.setStatus("Primary")
+rs.slaveOk()
+
+Answer: rs.slaveOk()
+
+
+
+
+*************************
+*************************   Replica Set Internals
+*************************
+
+oplog is a collection that is kept in each node on the replica set that keeps al the information related with the inserts and updates on the mongo DB
+
+
+Quiz: Replica Set Internals
+
+Which of the following statements are true about replication. Check all that apply.
+
+1. You can write to a primary or secondary node and the database will forward the write to the primary.
+2. Replication supports mixed-mode storage engines. For examples, a mmapv1 primary and wiredTiger secondary.
+3. A copy of the oplog is kept on both the primary and secondary servers.
+4. You can read from a primary or secondary, by default.
+5. The oplog is implemented as a capped collection.
+
+Answer: 2, 3 and 5
+
+
+
+*************************
+*************************   Failover and Rollback
+*************************
+
+
+
+While it is true that a replica set will never rollback a write if it was performed with w=majority and that write successfully replicated to a majority of nodes, it is possible that a write performed with w=majority gets rolled back. Here is the scenario: you do write with w=majority and a failover over occurs after the write has committed to the primary but before replication completes. You will likely see an exception at the client. An election occurs and a new primary is elected. When the original primary comes back up, it will rollback the committed write. However, from your application's standpoint, that write never completed, so that's ok.
+
+
+If you insert on the primary ann then the primary fails, then a new primary is elected, then when the node starts again i weak up as a secondary, it realizes that in the oplog collection are some insert that the new primary does not have, so the node will rollback the inserts.
+
+
+Quiz: Failover and Rollback
+
+What happens if a node comes back up as a secondary after a period of being offline and the oplog has looped on the primary?
+
+1. The entire dataset will be copied from the primary
+2. A rollback will occur
+3. The new node stays offline (does not re-join the replica set)
+4. The new node begins to calculate Pi to a large number of decimal places
+
+Answer: 1
+
+
+
+
+
+*************************
+*************************   Homework: Homework 6.1
+*************************
+
+
+
+Which of the following statements are true about replication in MongoDB? Check all that apply.
+
+
+1. The minimum sensible number of voting nodes to a replica set is three.
+2. MongoDB replication is synchronous.
+3. By default, using the new MongoClient connection class, w=1 and j=1.
+4. The oplog utilizes a capped collection.
+
+Answer: 1 and 4

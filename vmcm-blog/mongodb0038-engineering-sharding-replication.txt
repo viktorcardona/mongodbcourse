@@ -1,0 +1,20 @@
+*************************
+*************************   Sharding and Replication
+*************************
+
+    - Sharding and Replication are almost always done togheter
+    - It applies the write concern (w,j,wtimeout) for each shard, eg: for a mlti update that affects 3 shards the write concern must apply to each shard
+
+
+
+Quiz: Sharding + Replication
+
+Suppose you want to run multiple mongos routers for redundancy. What level of the stack will assure that you can failover to a different mongos from within your application?
+
+mongod
+mongos
+drivers
+sharding config servers
+
+
+Answer: drivers

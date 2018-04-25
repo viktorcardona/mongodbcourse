@@ -1,0 +1,58 @@
+###############
+###############   CRUD:OPERATIONS:
+###############
+#connecting:
+mongo
+#
+for (i = 0; i < 3; i++) print("Hello, MongoDB Developer!")
+#output:
+Hello, MongoDB Developer!
+Hello, MongoDB Developer!
+Hello, MongoDB Developer!
+# ask 4 help
+help
+#or key shortcuts
+help keys
+#examples to work on the mongo shell with the scripting language:
+> x = 1
+1
+> x
+1
+> y = "abc"
+abc
+> z = { a : 1 }
+{ "a" : 1 }
+> z.a
+1
+> z["a"]
+1
+> w="a"
+a
+> z[w]
+1
+#other example:
+> x = { "a" : 1 };
+{ "a" : 1 }
+> y = "a";
+a
+> x[y]++;
+1
+> print(x.a);
+2
+#other examples:
+> new Date()
+ISODate("2016-03-23T02:40:14.931Z")
+> NumberInt(1)
+NumberInt(1)
+> NumberLong(1)
+NumberLong(1)
+> NumberLong(1)+NumberLong(3)
+4
+> obj = { "a" : 1 , "b" : ISODate("2016-03-23T02:40:14.931Z"), "c" : NumberLong(42) }
+{ "a" : 1, "b" : ISODate("2016-03-23T02:40:14.931Z"), "c" : NumberLong(42) }
+#types available in BSON:
+    Strings
+    Floating-point numbers
+    Arrays
+    Objects (Subdocuments)
+    Timestamps

@@ -1,0 +1,250 @@
+#
+#   Arrays
+#
+
+> db.accounts.insert( { name : "George", favorites : [ "ice cream", "pretzels" ]  } );
+WriteResult({ "nInserted" : 1 })
+> db.accounts.insert( { name : "Howard", favorites : [ "pretzels", "beer" ]  } );
+WriteResult({ "nInserted" : 1 })
+> db.accounts.find();
+{ "_id" : ObjectId("56f583b9a91791f704d4eeca"), "name" : "George", "favorites" : [ "ice cream", "pretzels" ] }
+{ "_id" : ObjectId("56f583d4a91791f704d4eecb"), "name" : "Howard", "favorites" : [ "pretzels", "beer" ] }
+> db.accounts.find().pretty();
+{
+	"_id" : ObjectId("56f583b9a91791f704d4eeca"),
+	"name" : "George",
+	"favorites" : [
+		"ice cream",
+		"pretzels"
+	]
+}
+{
+	"_id" : ObjectId("56f583d4a91791f704d4eecb"),
+	"name" : "Howard",
+	"favorites" : [
+		"pretzels",
+		"beer"
+	]
+}
+> db.accounts.find( { favorites : "pretzels" } );
+{ "_id" : ObjectId("56f583b9a91791f704d4eeca"), "name" : "George", "favorites" : [ "ice cream", "pretzels" ] }
+{ "_id" : ObjectId("56f583d4a91791f704d4eecb"), "name" : "Howard", "favorites" : [ "pretzels", "beer" ] }
+> db.accounts.find( { favorites : "beer" } );
+{ "_id" : ObjectId("56f583d4a91791f704d4eecb"), "name" : "Howard", "favorites" : [ "pretzels", "beer" ] }
+> db.accounts.find( { favorites : "beer", name : { $gt : "H" } } );
+{ "_id" : ObjectId("56f583d4a91791f704d4eecb"), "name" : "Howard", "favorites" : [ "pretzels", "beer" ] }
+
+#
+#   $all OPERATOR
+#
+> db.accounts.find();
+{ "_id" : ObjectId("56f583b9a91791f704d4eeca"), "name" : "George", "favorites" : [ "ice cream", "pretzels" ] }
+{ "_id" : ObjectId("56f583d4a91791f704d4eecb"), "name" : "Howard", "favorites" : [ "pretzels", "beer" ] }
+{ "_id" : ObjectId("56f58583a91791f704d4eecc"), "name" : "Irving", "favorites" : [ "beer", "pretzels", "cheese" ] }
+{ "_id" : ObjectId("56f5859ca91791f704d4eecd"), "name" : "John", "favorites" : [ "beer", "cheese" ] }
+> db.accounts.find( { favorites : { $all : ["pretzels", "beer"]  } } );
+{ "_id" : ObjectId("56f583d4a91791f704d4eecb"), "name" : "Howard", "favorites" : [ "pretzels", "beer" ] }
+{ "_id" : ObjectId("56f58583a91791f704d4eecc"), "name" : "Irving", "favorites" : [ "beer", "pretzels", "cheese" ] }
+#
+#   $in OPERATOR
+#
+> db.accounts.find( { name : { $in : [ "Howard" , "John" ] } } );
+{ "_id" : ObjectId("56f583d4a91791f704d4eecb"), "name" : "Howard", "favorites" : [ "pretzels", "beer" ] }
+{ "_id" : ObjectId("56f5859ca91791f704d4eecd"), "name" : "John", "favorites" : [ "beer", "cheese" ] }
+> db.accounts.find( { favorites : { $in : [ "beer" , "ice cream" , "avocado" ] } } );
+{ "_id" : ObjectId("56f583b9a91791f704d4eeca"), "name" : "George", "favorites" : [ "ice cream", "pretzels" ] }
+{ "_id" : ObjectId("56f583d4a91791f704d4eecb"), "name" : "Howard", "favorites" : [ "pretzels", "beer" ] }
+{ "_id" : ObjectId("56f58583a91791f704d4eecc"), "name" : "Irving", "favorites" : [ "beer", "pretzels", "cheese" ] }
+{ "_id" : ObjectId("56f5859ca91791f704d4eecd"), "name" : "John", "favorites" : [ "beer", "cheese" ] }
+
+#
+#   REMOVE
+#
+> db.users.remove( { "_id" : ObjectId("56ecc98488ccec0b40b5f18b") } );
+WriteResult({ "nRemoved" : 1 })
+
+#
+#   DOT NOTATION
+#
+> db.users.insert( { name : "richard", email : { work : "richard@10gen.com" , personal : "kreuter@example.com" } } );
+> db.users.findOne();
+{
+	"_id" : ObjectId("56f5880fa91791f704d4eece"),
+	"name" : "richard",
+	"email" : {
+		"work" : "richard@10gen.com",
+		"personal" : "kreuter@example.com"
+	}
+}
+> db.users.find( { email : { work : "richard@10gen.com", personal : "kreuter@example.com" }  } );
+{ "_id" : ObjectId("56f5880fa91791f704d4eece"), "name" : "richard", "email" : { "work" : "richard@10gen.com", "personal" : "kreuter@example.com" } }
+#this query does not return nothing because the order does not match:
+> db.users.find( { email : { personal : "kreuter@example.com" , work : "richard@10gen.com" }  } );
+#does not find nothing:
+> db.users.find( { email : { work : "richard@10gen.com" }  } );
+#use dot notation
+> db.users.find( { "email.work" : "richard@10gen.com" } );
+{ "_id" : ObjectId("56f5880fa91791f704d4eece"), "name" : "richard", "email" : { "work" : "richard@10gen.com", "personal" : "kreuter@example.com" } }
+
+#QUIZ:
+Suppose a simple e-commerce product catalog called catalog with documents that look like this:
+
+{ product : "Super Duper-o-phonic",
+  price : 100000000000,
+  reviews : [ { user : "fred", comment : "Great!" , rating : 5 },
+              { user : "tom" , comment : "I agree with Fred, somewhat!" , rating : 4 } ],
+  ... }
+#Write a query that finds all products that cost more than 10,000 and that have a rating of 5 or better:
+db.catalog.find( { price : { $gt : 10000 }, "reviews.rating" : { $gte : 5 } } );
+
+
+
+
+
+
+
+#
+#   CURSOR
+#
+> db.people.find();
+{ "_id" : ObjectId("56f204770317ac53eccabb44"), "name" : "Smith", "age" : 30, "profession" : "hacker" }
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar" }
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred" }
+{ "_id" : ObjectId("56f57021a91791f704d4eec8"), "name" : 42 }
+{ "_id" : ObjectId("56f5710ea91791f704d4eec9"), "name" : "Jones", "age" : 35, "profession" : "baker" }
+>
+> cur = db.people.find(); null;
+null
+> cur.hasNext()
+true
+> cur.next()
+{
+	"_id" : ObjectId("56f204770317ac53eccabb44"),
+	"name" : "Smith",
+	"age" : 30,
+	"profession" : "hacker"
+}
+> cur.next()
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+> cur.next()
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob" }
+> while(cur.hasNext()) printjson(cur.next());
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar" }
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred" }
+{ "_id" : ObjectId("56f57021a91791f704d4eec8"), "name" : 42 }
+{
+	"_id" : ObjectId("56f5710ea91791f704d4eec9"),
+	"name" : "Jones",
+	"age" : 35,
+	"profession" : "baker"
+}
+
+#
+#limit to 5 docs:
+#
+> cur = db.people.find(); null;
+null
+> cur.limit(5); null;
+null
+> while(cur.hasNext()) printjson(cur.next());
+{
+	"_id" : ObjectId("56f204770317ac53eccabb44"),
+	"name" : "Smith",
+	"age" : 30,
+	"profession" : "hacker"
+}
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+
+#
+#
+# ordering in reverse order:
+#
+#
+> cur = db.people.find(); null;
+null
+> cur.sort( { name : -1 } ); null;
+null
+> while(cur.hasNext()) printjson(cur.next());
+{
+	"_id" : ObjectId("56f204770317ac53eccabb44"),
+	"name" : "Smith",
+	"age" : 30,
+	"profession" : "hacker"
+}
+{
+	"_id" : ObjectId("56f5710ea91791f704d4eec9"),
+	"name" : "Jones",
+	"age" : 35,
+	"profession" : "baker"
+}
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+{ "_id" : ObjectId("56f56f24a91791f704d4eec4"), "name" : "Charlie" }
+{ "_id" : ObjectId("56f56f1da91791f704d4eec3"), "name" : "Bob" }
+{ "_id" : ObjectId("56f56f19a91791f704d4eec2"), "name" : "Alice" }
+{ "_id" : ObjectId("56f57021a91791f704d4eec8"), "name" : 42 }
+
+
+#
+#   CURSOR: SORT and LIMIT
+#
+> cur = db.people.find(); null;
+null
+> cur.sort( { name : -1 } ).limit(3); null;
+null
+> while(cur.hasNext()) printjson(cur.next());
+{
+	"_id" : ObjectId("56f204770317ac53eccabb44"),
+	"name" : "Smith",
+	"age" : 30,
+	"profession" : "hacker"
+}
+{
+	"_id" : ObjectId("56f5710ea91791f704d4eec9"),
+	"name" : "Jones",
+	"age" : 35,
+	"profession" : "baker"
+}
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred" }
+
+#
+#
+# SORT LIMIT and SKIP:
+#
+#
+> cur = db.people.find(); null;
+null
+> cur.sort( { name : -1 } ).limit(3).skip(2); null;
+null
+> while(cur.hasNext()) printjson(cur.next());
+{ "_id" : ObjectId("56f56f36a91791f704d4eec7"), "name" : "Fred" }
+{ "_id" : ObjectId("56f56f31a91791f704d4eec6"), "name" : "Edgar" }
+{ "_id" : ObjectId("56f56f2ba91791f704d4eec5"), "name" : "Dave" }
+
+
+
+#
+#       COUNT
+#
+> db.scores.find( { type : "exam" } );
+{ "_id" : ObjectId("56f209290317ac53eccabb7b"), "student" : 18, "type" : "exam", "score" : 25 }
+{ "_id" : ObjectId("56f209290317ac53eccabb7e"), "student" : 19, "type" : "exam", "score" : 60 }
+.
+.
+.
+> db.scores.count( { type : "exam" } );
+1000
+
+> db.scores.count( { type : "essay", score : {$gt : 90} } );
+99
+
